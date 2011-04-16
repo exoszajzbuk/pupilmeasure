@@ -1,0 +1,2 @@
+- needs OpenCV 2.1.0
+- needs export LD_LIBRARY_PATH=/usr/local/lib
