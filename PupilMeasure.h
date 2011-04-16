@@ -46,6 +46,8 @@ class PupilMeasure
 
         // actual image
         OwnCVImage m_actualFrame;
+		OwnCVImage m_leftEyeFrame;
+        OwnCVImage m_rightEyeFrame;
 
         // ==========
         // INFOS

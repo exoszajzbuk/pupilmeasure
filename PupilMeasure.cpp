@@ -165,6 +165,16 @@ bool PupilMeasure::processNextFrame()
         //std::cout << "empty" << std::endl;
         m_prevImage = grey;
     }
+    
+/*    
+    // extract eye regions
+    cv::Mat tmp, leftEye, leftEyeProc, rightEye, rightEyeProc;
+    tmp = img(cv::Rect(m_points[0].x-m_eyesize/2, m_points[0].y-m_eyesize/2, m_eyesize, m_eyesize));
+    tmp.copyTo(leftEye);
+
+    tmp = img(cv::Rect(m_points[1].x-m_eyesize/2, m_points[1].y-m_eyesize/2, m_eyesize, m_eyesize));
+    tmp.copyTo(rightEye);
+*/
 
     // ***===***===***===***===***===***===***===***===***===***===***===***===
     // OPENCV code here
@@ -329,7 +339,19 @@ bool PupilMeasure::processNextFrame()
     // notify videoframe
     m_actualFrame.setImage(out);
     m_actualFrame.setChanged(true);
+/*       
+    // notify left-eye frame
+    cv::Mat leftEyeBig;
+    resize(leftEyeProc, leftEyeBig, Size(), 2, 2);
+    m_leftEyeFrame.setImage(leftEyeBig);
+    m_leftEyeFrame.setChanged(true);
 
+    // notify left-eye frame
+    cv::Mat rightEyeBig;
+    resize(rightEye, rightEyeBig, Size(), 2, 2);
+    m_rightEyeFrame.setImage(rightEyeBig);
+    m_rightEyeFrame.setChanged(true);
+*/
     // save time values
     m_timePrev = m_timeNow;
     m_timeNow = getTime();

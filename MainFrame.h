@@ -55,8 +55,10 @@ protected:
 
 private:
     // variables
-    PupilMeasure*   m_model;        // pointer to model
-    VideoFrame*     m_resultFrame;  // pointer to video window
+    PupilMeasure*   m_model;        	// pointer to model
+    VideoFrame*     m_resultFrame;  	// pointer to video window
+    VideoFrame*     m_leftEyeFrame;		// left-eye frame
+    VideoFrame*     m_rightEyeFrame;	// right-eye frame
 
     // methods
     void        activateRenderLoop(bool on);    // activating render-loop
