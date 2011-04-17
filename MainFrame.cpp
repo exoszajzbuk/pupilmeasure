@@ -43,8 +43,8 @@ MainFrame::MainFrame(wxWindow* parent, PupilMeasure* model)
 
     // resultframe to null
     m_resultFrame = NULL;
-//    m_leftEyeFrame = NULL;
-//    m_rightEyeFrame = NULL;
+    m_leftEyeFrame = NULL;
+    m_rightEyeFrame = NULL;
 }
 
 
@@ -90,8 +90,8 @@ void MainFrame::onIdle(wxIdleEvent& event)
        
     // update video frame
     m_resultFrame->m_imagePanel->paintNow();
-    //m_leftEyeFrame->m_imagePanel->paintNow();
-    //m_rightEyeFrame->m_imagePanel->paintNow();
+    m_leftEyeFrame->m_imagePanel->paintNow();
+    m_rightEyeFrame->m_imagePanel->paintNow();
         
     // render continously
     event.RequestMore();
@@ -121,8 +121,8 @@ void MainFrame::onButtonWebcam(wxCommandEvent& event)
     if (m_resultFrame != NULL) 
     {
         m_resultFrame->Destroy();
-        //m_leftEyeFrame->Destroy();
-        //m_rightEyeFrame->Destroy();
+        m_leftEyeFrame->Destroy();
+        m_rightEyeFrame->Destroy();
     }
             
     // -----
@@ -131,18 +131,18 @@ void MainFrame::onButtonWebcam(wxCommandEvent& event)
     m_resultFrame->SetTitle(wxT("Tracking Result"));
  
     // left-eye frame
-    //m_leftEyeFrame = new VideoFrame(this, &m_model->m_leftEyeFrame, m_model);
-    //m_leftEyeFrame->SetTitle(wxT("Left Eye"));
+    m_leftEyeFrame = new VideoFrame(this, &m_model->m_leftEyeFrame, m_model);
+    m_leftEyeFrame->SetTitle(wxT("Left Eye"));
 
     // right-eye frame
-    //m_rightEyeFrame = new VideoFrame(this, &m_model->m_rightEyeFrame, m_model);
-    //m_rightEyeFrame->SetTitle(wxT("Right Eye"));
+    m_rightEyeFrame = new VideoFrame(this, &m_model->m_rightEyeFrame, m_model);
+    m_rightEyeFrame->SetTitle(wxT("Right Eye"));
 
     // -----
     // show video frame
     m_resultFrame->Show();
-    //m_leftEyeFrame->Show();
-    //m_rightEyeFrame->Show();
+    m_leftEyeFrame->Show();
+    m_rightEyeFrame->Show();
 
     // enable render loop
     activateRenderLoop(true);
@@ -165,11 +165,11 @@ void MainFrame::onButtonStop(wxCommandEvent& event)
     m_resultFrame->Destroy();
     m_resultFrame = NULL;
 
-    //m_leftEyeFrame->Destroy();
-    //m_leftEyeFrame = NULL;
+    m_leftEyeFrame->Destroy();
+    m_leftEyeFrame = NULL;
 
-    //m_rightEyeFrame->Destroy();
-    //m_rightEyeFrame = NULL;
+    m_rightEyeFrame->Destroy();
+    m_rightEyeFrame = NULL;
     
     // disable render loop
     activateRenderLoop(false);
@@ -190,8 +190,8 @@ void MainFrame::onButtonExit(wxCommandEvent& event)
     {
         // close video frame
         m_resultFrame->Destroy();
-        //m_leftEyeFrame->Destroy();
-        //m_rightEyeFrame->Destroy();
+        m_leftEyeFrame->Destroy();
+        m_rightEyeFrame->Destroy();
     }
 
     // close application
@@ -298,6 +298,12 @@ void MainFrame::onUpdateUI(wxUpdateUIEvent& event)
 ////////////////////////////////////////////////////////////
 void MainFrame::updateModel(wxCommandEvent& event)
 {
+	// set eye params
+	m_model->setEyeWidth(getIntValue(m_textEyeWidth->GetValue()));
+	m_model->setEyeHeight(getIntValue(m_textEyeHeight->GetValue()));
+	m_model->setEyeHPos(getIntValue(m_textEyeHPos->GetValue()));
+	m_model->setEyeVPos(getIntValue(m_textEyeVPos->GetValue()));
+
 	// set method
 	m_model->setMethod(m_radioBoxMethod->GetSelection());
 	

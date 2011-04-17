@@ -79,8 +79,8 @@ bool PupilMeasure::startWebcam(string device, int width, int height, string outF
     }
     
     // initialize snake contour
-    m_snakeContourLength = 12;
-    initSnakeContour(getWidth()/2, getHeight()/2, getWidth()/2, m_snakeContourLength);
+    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, 0);
+    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, 1);
     
     // ================
     // LOGGING
@@ -149,15 +149,121 @@ bool PupilMeasure::processNextFrame()
 {
     // grabs next frame
     cv::Mat img = grabFrame();
+    	
+	// eye positions
+	int padding = 5;
+	int eyeY = padding+m_eyeHeight/2+(int)((getHeight()-(padding*2+m_eyeHeight))*m_eyeVPos/100);
+	int leftEyeX = padding+m_eyeWidth/2+(int)((getWidth()/2-(padding*2+m_eyeWidth))*m_eyeHPos/100);
+	int rightEyeX = getWidth()/2+padding+m_eyeWidth/2+(int)((getWidth()/2-(padding*2+m_eyeWidth))*(100-m_eyeHPos)/100);
+
+	// render left-eye frame
+	rectangle(
+		img,
+		Point(leftEyeX-m_eyeWidth/2, eyeY-m_eyeHeight/2),
+		Point(leftEyeX+m_eyeWidth/2, eyeY+m_eyeHeight/2),
+		Scalar(255,0,0),
+		1, 8, 0
+	);
+	
+	// render right-eye frame
+	rectangle(
+		img,
+		Point(rightEyeX-m_eyeWidth/2, eyeY-m_eyeHeight/2),
+		Point(rightEyeX+m_eyeWidth/2, eyeY+m_eyeHeight/2),
+		Scalar(255,0,0),
+		1, 8, 0
+	);
+	
+    // extract eye regions
+    cv::Mat tmp, leftEye, leftEyeProc, rightEye, rightEyeProc;
+    tmp = img(cv::Rect(leftEyeX-m_eyeWidth/2, eyeY-m_eyeHeight/2, m_eyeWidth, m_eyeHeight));
+    tmp.copyTo(leftEye);
+
+    tmp = img(cv::Rect(rightEyeX-m_eyeWidth/2, eyeY-m_eyeHeight/2, m_eyeWidth, m_eyeHeight));
+    tmp.copyTo(rightEye);
     
-    // frames
+    // process eye regions
+    leftEyeProc = processEye(leftEye, 0);
+    rightEyeProc = processEye(rightEye, 1);
+
+    // render current fps to image
+    std::ostringstream o;
+    o << "FPS: " << getCurrentFPS();
+    cv::putText(img, o.str(), Point(getWidth()-100, 13), FONT_HERSHEY_PLAIN, 1.0, Scalar(0,255,0), 2);
+
+    // notify videoframe
+    m_actualFrame.setImage(img);
+    m_actualFrame.setChanged(true);
+       
+    // notify left-eye frame
+    //cv::Mat leftEyeBig;
+    //resize(leftEyeProc, leftEyeBig, Size(), 2, 2);
+    m_leftEyeFrame.setImage(leftEyeProc);
+    m_leftEyeFrame.setChanged(true);
+
+    // notify left-eye frame
+    //cv::Mat rightEyeBig;
+    //resize(rightEyeProc, rightEyeBig, Size(), 2, 2);
+    m_rightEyeFrame.setImage(rightEyeProc);
+    m_rightEyeFrame.setChanged(true);
+
+    // save time values
+    m_timePrev = m_timeNow;
+    m_timeNow = getTime();
+    
+    // ===============
+    // LOGGING
+	
+	// elapsed time
+	double time = (m_timeNow - m_startTime)/1000000000;
+    
+    // open log file
+	ofstream logfile(m_outFile.c_str(), ios::app);
+
+	// log time, frame number and results
+    logfile << m_frameNum++ << ";" << time << ";results\n";
+    
+    // HOUGH/SNAKE specific logging
+    
+    // close log file
+    logfile.close();
+    
+}
+
+
+////////////////////////////////////////////////////////////
+// Class name:  PupilMeasure
+// Method name: processEye
+//
+// Description: This method initializes snake contour
+//              to given position (in a circle).
+////////////////////////////////////////////////////////////
+cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
+{
+   	// ***===***===***===***===***===***===***===***===***===***===***===***===
+    // OPENCV code here
+    
+	// frames
     cv::Mat grey, thr, blur, out;
     IplImage snakeimg;
     
+	CvPoint* snakeContour;
+	int snakeContourLength;
+    
     // result vectors
+    if (p_eye == 0)
+    {
+    	snakeContour = m_snakeContourLeft;
+		snakeContourLength = m_snakeContourLeftLength;
+    }
+    else if (p_eye == 1)
+    {
+		snakeContour = m_snakeContourRight;
+		snakeContourLength = m_snakeContourRightLength;
+    }
     vector<Vec3f> circles;
 
-    cvtColor(img, grey, CV_RGB2GRAY);
+    cvtColor(p_img, grey, CV_RGB2GRAY);
 
     // if there's no previous image
     if (m_prevImage.empty())
@@ -166,19 +272,6 @@ bool PupilMeasure::processNextFrame()
         m_prevImage = grey;
     }
     
-/*    
-    // extract eye regions
-    cv::Mat tmp, leftEye, leftEyeProc, rightEye, rightEyeProc;
-    tmp = img(cv::Rect(m_points[0].x-m_eyesize/2, m_points[0].y-m_eyesize/2, m_eyesize, m_eyesize));
-    tmp.copyTo(leftEye);
-
-    tmp = img(cv::Rect(m_points[1].x-m_eyesize/2, m_points[1].y-m_eyesize/2, m_eyesize, m_eyesize));
-    tmp.copyTo(rightEye);
-*/
-
-    // ***===***===***===***===***===***===***===***===***===***===***===***===
-    // OPENCV code here
-
 	// thresholding
 	if (m_threshold == -1)
 	{
@@ -225,7 +318,7 @@ bool PupilMeasure::processNextFrame()
 		// Active Contour model
 		
 		// reinit if needed
-		reInitSnakeContour(15);
+		reInitSnakeContour(20, p_eye);
 
 		// get IplImage
 		snakeimg = IplImage(blur);
@@ -244,8 +337,8 @@ bool PupilMeasure::processNextFrame()
 		// snake interation
 		cvSnakeImage(
 			&snakeimg,                          // input image
-			m_snakeContour,                     // contour
-			m_snakeContourLength,               // contour length
+			snakeContour,                       // contour
+			snakeContourLength,                 // contour length
 			&snakeA,							// alpha
  			&snakeB,							// beta
 			&snakeC,							// gamma
@@ -254,14 +347,26 @@ bool PupilMeasure::processNextFrame()
 			termCrit,							// termination crit.
 			0									// calc. gradient
 		);
+	
+		// write back results
+		if (p_eye == 0)
+		{
+    		m_snakeContourLeft = snakeContour;
+			m_snakeContourLeftLength = snakeContourLength;
+		}
+		else if (p_eye == 1)
+		{
+    		m_snakeContourRight = snakeContour;
+			m_snakeContourRightLength = snakeContourLength;		
+		}
 		
 		// draw results
-		for (size_t i = 0; i < m_snakeContourLength; i++)
+		for (size_t i = 0; i < snakeContourLength; i++)
 		{
 			// points
 			circle(
 				out,
-				m_snakeContour[i],
+				snakeContour[i],
 				3,
 				Scalar(0,255,0),
 				-1,
@@ -275,8 +380,8 @@ bool PupilMeasure::processNextFrame()
 				// draw line segments
 				line(
 					out,
-					m_snakeContour[i],
-					m_snakeContour[i-1],
+					snakeContour[i],
+					snakeContour[i-1],
 					Scalar(255,0,0),
 					1,
 					8,
@@ -288,8 +393,8 @@ bool PupilMeasure::processNextFrame()
 		// draw last line segment
 		line(
 			out,
-			m_snakeContour[0],
-			m_snakeContour[m_snakeContourLength-1],
+			snakeContour[0],
+			snakeContour[snakeContourLength-1],
 			Scalar(255,0,0),
 			1,
 			8,
@@ -328,52 +433,12 @@ bool PupilMeasure::processNextFrame()
 			circle(out, center, radius, Scalar(255,0,0), 1, 8, 0);
 		}
 	}
+	
+	return out;
 
     // ***===***===***===***===***===***===***===***===***===***===***===***===
-
-    // render current fps to image
-    std::ostringstream o;
-    o << "FPS: " << getCurrentFPS();
-    cv::putText(out, o.str(), Point(getWidth()-100, 13), FONT_HERSHEY_PLAIN, 1.0, Scalar(0,255,0), 2);
-
-    // notify videoframe
-    m_actualFrame.setImage(out);
-    m_actualFrame.setChanged(true);
-/*       
-    // notify left-eye frame
-    cv::Mat leftEyeBig;
-    resize(leftEyeProc, leftEyeBig, Size(), 2, 2);
-    m_leftEyeFrame.setImage(leftEyeBig);
-    m_leftEyeFrame.setChanged(true);
-
-    // notify left-eye frame
-    cv::Mat rightEyeBig;
-    resize(rightEye, rightEyeBig, Size(), 2, 2);
-    m_rightEyeFrame.setImage(rightEyeBig);
-    m_rightEyeFrame.setChanged(true);
-*/
-    // save time values
-    m_timePrev = m_timeNow;
-    m_timeNow = getTime();
-    
-    // ===============
-    // LOGGING
-	
-	// elapsed time
-	double time = (m_timeNow - m_startTime)/1000000000;
-    
-    // open log file
-	ofstream logfile(m_outFile.c_str(), ios::app);
-
-	// log time, frame number and results
-    logfile << m_frameNum++ << ";" << time << ";results\n";
-    
-    // HOUGH/SNAKE specific logging
-    
-    // close log file
-    logfile.close();
-    
 }
+
 
 ////////////////////////////////////////////////////////////
 // Class name:  PupilMeasure
@@ -382,50 +447,99 @@ bool PupilMeasure::processNextFrame()
 // Description: This method initializes snake contour
 //              to given position (in a circle).
 ////////////////////////////////////////////////////////////
-void PupilMeasure::initSnakeContour(int x0, int y0, int r, int num)
+void PupilMeasure::initSnakeContour(int x0, int y0, int r, int num, int p_eye)
 {
-    // if already initialized, destroy
-    if (m_snakeContour != NULL)
+
+    // set proper elements
+    if (p_eye == 0)
     {
-        delete m_snakeContour;
-    }
+    	if (m_snakeContourLeft != NULL)
+    	{
+    		delete m_snakeContourLeft;
+    	}
 
-    // create contour
-    m_snakeContour = new CvPoint[num];
-    m_snakeContourLength = num;
+	    // create contour
+		m_snakeContourLeft = new CvPoint[num];
+    	m_snakeContourLeftLength = num;
 
-    // set points to a circle
-    double deg = 360/num;
-    double rad = deg * (M_PI/180);
+		// set points to a circle
+		double deg = 360/num;
+		double rad = deg * (M_PI/180);
 
-    for (int i = 0; i < num; i++)
-    {
-        int x = (int)(x0 + r*cos(i*rad));
-        int y = (int)(y0 + r*sin(i*rad));
+		for (int i = 0; i < num; i++)
+		{
+		    int x = (int)(x0 + r*cos(i*rad));
+		    int y = (int)(y0 + r*sin(i*rad));
 
-        if (x > getWidth())
-        {
-            x = getWidth();
-        }
+		    if (x > m_eyeWidth)
+		    {
+		        x = m_eyeWidth;
+		    }
 
-        if (x < 0)
-        {
-            x = 0;
-        }
+		    if (x < 0)
+		    {
+		        x = 0;
+		    }
 
-        if (y > getHeight())
-        {
-            y = getHeight();
-        }
+		    if (y > m_eyeHeight)
+		    {
+		        y = m_eyeHeight;
+		    }
 
-        if (y < 0)
-        {
-            y = 0;
-        }
+		    if (y < 0)
+		    {
+		        y = 0;
+		    }
 
-        m_snakeContour[i].x = x;
-        m_snakeContour[i].y = y;
-    }
+		    m_snakeContourLeft[i].x = x;
+		    m_snakeContourLeft[i].y = y;
+		}
+	}
+	else if (p_eye == 1)
+	{
+    	if (m_snakeContourRight != NULL)
+    	{
+    		delete m_snakeContourRight;
+    	}
+
+	    // create contour
+		m_snakeContourRight = new CvPoint[num];
+    	m_snakeContourRightLength = num;
+
+		// set points to a circle
+		double deg = 360/num;
+		double rad = deg * (M_PI/180);
+
+		for (int i = 0; i < num; i++)
+		{
+		    int x = (int)(x0 + r*cos(i*rad));
+		    int y = (int)(y0 + r*sin(i*rad));
+
+		    if (x > m_eyeWidth)
+		    {
+		        x = m_eyeWidth;
+		    }
+
+		    if (x < 0)
+		    {
+		        x = 0;
+		    }
+
+		    if (y > m_eyeHeight)
+		    {
+		        y = m_eyeHeight;
+		    }
+
+		    if (y < 0)
+		    {
+		        y = 0;
+		    }
+
+		    m_snakeContourRight[i].x = x;
+		    m_snakeContourRight[i].y = y;
+		}
+	}
+    
 }
 
 
@@ -437,22 +551,39 @@ void PupilMeasure::initSnakeContour(int x0, int y0, int r, int num)
 //              needs to be reinitialized, and
 //              reinitializes it if needed.
 ////////////////////////////////////////////////////////////
-void PupilMeasure::reInitSnakeContour(int thres)
+void PupilMeasure::reInitSnakeContour(int thres, int p_eye)
 {
+	// switch contours
+	CvPoint* snakeContour;
+	int snakeContourLength;
+	
+	if (p_eye == 0)
+	{
+		snakeContour = m_snakeContourLeft;
+		snakeContourLength = m_snakeContourLeftLength;
+	}
+	else if (p_eye == 1)
+	{
+		snakeContour = m_snakeContourRight;
+		snakeContourLength = m_snakeContourRightLength;	
+	}
+
+	std::cout << "reinit\n";
+
     // temporary variables
-    int x_min = getWidth();
+    int x_min = m_eyeWidth;
     int x_max = 0;
     int x_sum = 0;
 
-    int y_min = getHeight();
+    int y_min = m_eyeHeight;
     int y_max = 0;
     int y_sum = 0;
 
     // calculate 'bounding box'
-    for (int i = 0; i < m_snakeContourLength; i++)
+    for (int i = 0; i < snakeContourLength; i++)
     {
-        int x = m_snakeContour[i].x;
-        int y = m_snakeContour[i].y;
+        int x = snakeContour[i].x;
+        int y = snakeContour[i].y;
 
         if (x > x_max)
         {
@@ -478,13 +609,15 @@ void PupilMeasure::reInitSnakeContour(int thres)
         y_sum += y;
     }
 
-    double x_avg = x_sum / m_snakeContourLength;
-    double y_avg = y_sum / m_snakeContourLength;
+    double x_avg = x_sum / snakeContourLength;
+    double y_avg = y_sum / snakeContourLength;
 
     if ((x_max - x_min) < thres && (y_max - y_min) < thres)
     {
+    	std::cout << "KELL\n";
         // reinit contour
-        initSnakeContour((int)x_avg, (int)y_avg, getWidth()/2, m_snakeContourLength);
+        initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, p_eye);
+        std::cout << "kesz\n";
     }
 
 }
@@ -641,6 +774,75 @@ bool PupilMeasure::pointSortPredicate(const cv::Point2f& left, const cv::Point2f
 {
     return left.x < right.x;
 }
+
+
+////////////////////////////////////////////////////////////
+// Class name:  PupilMeasure
+// Method name: setEyeWidth/getEyeWidth
+//
+// Description: adfasdf
+////////////////////////////////////////////////////////////
+void PupilMeasure::setEyeWidth(int p_eyeWidth)
+{
+    m_eyeWidth = p_eyeWidth;
+}
+
+int PupilMeasure::getEyeWidth()
+{
+    return m_eyeWidth;
+}
+
+
+////////////////////////////////////////////////////////////
+// Class name:  PupilMeasure
+// Method name: setEyeHeight/getEyeHeight
+//
+// Description: adfasdf
+////////////////////////////////////////////////////////////
+void PupilMeasure::setEyeHeight(int p_eyeHeight)
+{
+    m_eyeHeight = p_eyeHeight;
+}
+
+int PupilMeasure::getEyeHeight()
+{
+    return m_eyeHeight;
+}
+
+
+////////////////////////////////////////////////////////////
+// Class name:  PupilMeasure
+// Method name: setEyeHPos/getEyeHPos
+//
+// Description: adfasdf
+////////////////////////////////////////////////////////////
+void PupilMeasure::setEyeHPos(int p_eyeHPos)
+{
+    m_eyeHPos = p_eyeHPos;
+}
+
+int PupilMeasure::getEyeHPos()
+{
+    return m_eyeHPos;
+}
+
+
+////////////////////////////////////////////////////////////
+// Class name:  PupilMeasure
+// Method name: setEyeVPos/getEyeVPos
+//
+// Description: adfasdf
+////////////////////////////////////////////////////////////
+void PupilMeasure::setEyeVPos(int p_eyeVPos)
+{
+    m_eyeVPos = p_eyeVPos;
+}
+
+int PupilMeasure::getEyeVPos()
+{
+    return m_eyeVPos;
+}
+
 
 ////////////////////////////////////////////////////////////
 // Class name:  PupilMeasure

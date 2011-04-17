@@ -19,7 +19,7 @@
 
 MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( 350,600 ), wxSize( 350,600 ) );
+	this->SetSizeHints( wxSize( 350,700 ), wxSize( 350,700 ) );
 	
 	m_menuBar = new wxMenuBar( 0 );
 	m_menuFile = new wxMenu();
@@ -91,7 +91,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_labelDevice->Wrap( -1 );
 	fgSizer1->Add( m_labelDevice, 0, wxALIGN_CENTER_VERTICAL|wxALL|wxALIGN_RIGHT, 5 );
 	
-	m_textDevice = new wxTextCtrl( this, wxID_ANY, wxT("/dev/video0"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_textDevice = new wxTextCtrl( this, wxID_ANY, wxT("/dev/video1"), wxDefaultPosition, wxDefaultSize, 0 );
 	fgSizer1->Add( m_textDevice, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
 	
 	m_staticText4 = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
@@ -137,6 +137,57 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	
 	bSizer2->Add( sbSizer9, 0, wxEXPAND, 5 );
 	
+	wxStaticBoxSizer* sbSizer71;
+	sbSizer71 = new wxStaticBoxSizer( new wxStaticBox( this, wxID_ANY, wxT("Eye frames") ), wxVERTICAL );
+	
+	wxFlexGridSizer* fgSizer7;
+	fgSizer7 = new wxFlexGridSizer( 1, 4, 0, 0 );
+	fgSizer7->AddGrowableCol( 1 );
+	fgSizer7->AddGrowableCol( 3 );
+	fgSizer7->SetFlexibleDirection( wxBOTH );
+	fgSizer7->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText20 = new wxStaticText( this, wxID_ANY, wxT("Width"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText20->Wrap( -1 );
+	fgSizer7->Add( m_staticText20, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_textEyeWidth = new wxTextCtrl( this, wxID_ANY, wxT("300"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	fgSizer7->Add( m_textEyeWidth, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	
+	m_staticText21 = new wxStaticText( this, wxID_ANY, wxT("Height"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText21->Wrap( -1 );
+	fgSizer7->Add( m_staticText21, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_textEyeHeight = new wxTextCtrl( this, wxID_ANY, wxT("200"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	fgSizer7->Add( m_textEyeHeight, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxEXPAND, 5 );
+	
+	sbSizer71->Add( fgSizer7, 0, wxEXPAND, 5 );
+	
+	wxFlexGridSizer* fgSizer61;
+	fgSizer61 = new wxFlexGridSizer( 1, 4, 0, 0 );
+	fgSizer61->AddGrowableCol( 1 );
+	fgSizer61->AddGrowableCol( 3 );
+	fgSizer61->SetFlexibleDirection( wxBOTH );
+	fgSizer61->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+	
+	m_staticText181 = new wxStaticText( this, wxID_ANY, wxT("HPos (%)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText181->Wrap( -1 );
+	fgSizer61->Add( m_staticText181, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_textEyeHPos = new wxTextCtrl( this, wxID_ANY, wxT("100"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	fgSizer61->Add( m_textEyeHPos, 0, wxALL|wxEXPAND, 5 );
+	
+	m_staticText191 = new wxStaticText( this, wxID_ANY, wxT("VPos (%)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText191->Wrap( -1 );
+	fgSizer61->Add( m_staticText191, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	m_textEyeVPos = new wxTextCtrl( this, wxID_ANY, wxT("30"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	fgSizer61->Add( m_textEyeVPos, 0, wxALL|wxEXPAND, 5 );
+	
+	sbSizer71->Add( fgSizer61, 0, wxEXPAND, 5 );
+	
+	bSizer2->Add( sbSizer71, 0, wxEXPAND, 5 );
+	
 	wxString m_radioBoxMethodChoices[] = { wxT("Snake"), wxT("Hough") };
 	int m_radioBoxMethodNChoices = sizeof( m_radioBoxMethodChoices ) / sizeof( wxString );
 	m_radioBoxMethod = new wxRadioBox( this, wxID_ANY, wxT("Method"), wxDefaultPosition, wxDefaultSize, m_radioBoxMethodNChoices, m_radioBoxMethodChoices, 2, wxRA_SPECIFY_COLS );
@@ -175,7 +226,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText9->Wrap( -1 );
 	bSizer9->Add( m_staticText9, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textBlur = new wxTextCtrl( this, wxID_ANY, wxT("5"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textBlur = new wxTextCtrl( this, wxID_ANY, wxT("9"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	bSizer9->Add( m_textBlur, 1, wxALL, 5 );
 	
 	sbSizer7->Add( bSizer9, 0, wxEXPAND, 5 );
@@ -199,21 +250,21 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText10->Wrap( -1 );
 	fgSizer3->Add( m_staticText10, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
 	
-	m_textSnakeA = new wxTextCtrl( this, wxID_ANY, wxT("1.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textSnakeA = new wxTextCtrl( this, wxID_ANY, wxT("1.5"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer3->Add( m_textSnakeA, 0, wxALL, 5 );
 	
 	m_staticText11 = new wxStaticText( this, wxID_ANY, wxT("B"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText11->Wrap( -1 );
 	fgSizer3->Add( m_staticText11, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textSnakeB = new wxTextCtrl( this, wxID_ANY, wxT("1.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textSnakeB = new wxTextCtrl( this, wxID_ANY, wxT("2.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer3->Add( m_textSnakeB, 0, wxALL, 5 );
 	
 	m_staticText12 = new wxStaticText( this, wxID_ANY, wxT("C"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText12->Wrap( -1 );
 	fgSizer3->Add( m_staticText12, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textSnakeC = new wxTextCtrl( this, wxID_ANY, wxT("1.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textSnakeC = new wxTextCtrl( this, wxID_ANY, wxT("20.0"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer3->Add( m_textSnakeC, 1, wxALL, 5 );
 	
 	sbSizer4->Add( fgSizer3, 0, wxEXPAND, 5 );
@@ -236,7 +287,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText14->Wrap( -1 );
 	fgSizer4->Add( m_staticText14, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textSnakeIters = new wxTextCtrl( this, wxID_ANY, wxT("3"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textSnakeIters = new wxTextCtrl( this, wxID_ANY, wxT("7"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer4->Add( m_textSnakeIters, 0, wxALL|wxEXPAND, 5 );
 	
 	sbSizer4->Add( fgSizer4, 0, wxEXPAND, 5 );
@@ -264,7 +315,7 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText16->Wrap( -1 );
 	fgSizer5->Add( m_staticText16, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textHoughMinDist = new wxTextCtrl( this, wxID_ANY, wxT("50"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textHoughMinDist = new wxTextCtrl( this, wxID_ANY, wxT("100"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer5->Add( m_textHoughMinDist, 0, wxALL|wxEXPAND, 5 );
 	
 	sbSizer8->Add( fgSizer5, 0, wxEXPAND, 5 );
@@ -280,14 +331,14 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	m_staticText17->Wrap( -1 );
 	fgSizer6->Add( m_staticText17, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textHoughCanny = new wxTextCtrl( this, wxID_ANY, wxT("50"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textHoughCanny = new wxTextCtrl( this, wxID_ANY, wxT("300"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer6->Add( m_textHoughCanny, 0, wxALL|wxEXPAND, 5 );
 	
 	m_staticText18 = new wxStaticText( this, wxID_ANY, wxT("Hough"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText18->Wrap( -1 );
 	fgSizer6->Add( m_staticText18, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	m_textHoughHough = new wxTextCtrl( this, wxID_ANY, wxT("20"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
+	m_textHoughHough = new wxTextCtrl( this, wxID_ANY, wxT("17"), wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_PROCESS_ENTER );
 	fgSizer6->Add( m_textHoughHough, 0, wxALL|wxEXPAND, 5 );
 	
 	sbSizer8->Add( fgSizer6, 0, wxEXPAND, 5 );
@@ -309,6 +360,10 @@ MainFrameBase::MainFrameBase( wxWindow* parent, wxWindowID id, const wxString& t
 	this->Connect( wxID_STOPTOOL, wxEVT_UPDATE_UI, wxUpdateUIEventHandler( MainFrameBase::onUpdateUI ) );
 	this->Connect( wxID_PAUSETOOL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameBase::onButtonPause ) );
 	this->Connect( wxID_EXITTOOL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameBase::onButtonExit ) );
+	m_textEyeWidth->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeHeight->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeHPos->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeVPos->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_radioBoxMethod->Connect( wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_textThreshold->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_textBlur->Connect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::onTextBlur ), NULL, this );
@@ -340,6 +395,10 @@ MainFrameBase::~MainFrameBase()
 	this->Disconnect( wxID_STOPTOOL, wxEVT_UPDATE_UI, wxUpdateUIEventHandler( MainFrameBase::onUpdateUI ) );
 	this->Disconnect( wxID_PAUSETOOL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameBase::onButtonPause ) );
 	this->Disconnect( wxID_EXITTOOL, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler( MainFrameBase::onButtonExit ) );
+	m_textEyeWidth->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeHeight->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeHPos->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
+	m_textEyeVPos->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_radioBoxMethod->Disconnect( wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_textThreshold->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::updateModel ), NULL, this );
 	m_textBlur->Disconnect( wxEVT_COMMAND_TEXT_ENTER, wxCommandEventHandler( MainFrameBase::onTextBlur ), NULL, this );

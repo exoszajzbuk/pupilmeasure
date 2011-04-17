@@ -57,6 +57,14 @@ class MainFrameBase : public wxFrame
 		wxTextCtrl* m_textHeight;
 		wxStaticText* m_staticText19;
 		wxTextCtrl* m_textOutFile;
+		wxStaticText* m_staticText20;
+		wxTextCtrl* m_textEyeWidth;
+		wxStaticText* m_staticText21;
+		wxTextCtrl* m_textEyeHeight;
+		wxStaticText* m_staticText181;
+		wxTextCtrl* m_textEyeHPos;
+		wxStaticText* m_staticText191;
+		wxTextCtrl* m_textEyeVPos;
 		wxRadioBox* m_radioBoxMethod;
 		wxStaticText* m_staticText6;
 		wxTextCtrl* m_textThreshold;
@@ -97,7 +105,7 @@ class MainFrameBase : public wxFrame
 	
 	public:
 		
-		MainFrameBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("PupilMeasure"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,600 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
+		MainFrameBase( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("PupilMeasure"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 350,700 ), long style = wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL );
 		~MainFrameBase();
 	
 };

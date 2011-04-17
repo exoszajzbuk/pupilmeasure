@@ -43,6 +43,9 @@ class PupilMeasure
 
         // process actual or next frame
         bool processNextFrame();
+        
+        // processEye
+        cv::Mat processEye(cv::Mat p_mat);
 
         // actual image
         OwnCVImage m_actualFrame;
@@ -56,6 +59,16 @@ class PupilMeasure
         int getWidth();
         int getHeight();
         bool getCapturing();
+        
+        // get/set for eye frames
+        void setEyeWidth(int p_eyeWidth);
+        int getEyeWidth();
+        void setEyeHeight(int p_eyeHeight);
+        int getEyeHeight();
+        void setEyeHPos(int p_eyeHPos);
+        int getEyeHPos();
+        void setEyeVPos(int p_eyeVPos);
+        int getEyeVPos();
         
         // get/set method
         void setMethod(int p_method);
@@ -128,6 +141,12 @@ class PupilMeasure
         double m_startTime;
         int m_frameNum;
 
+		// eye frames
+		int m_eyeWidth;
+		int m_eyeHeight;
+		int m_eyeHPos;
+		int m_eyeVPos;
+
 		// process method
 		int m_method;
 		
@@ -142,11 +161,14 @@ class PupilMeasure
 		int m_snakeWindow;
 		int m_snakeIters;
 		
-		CvPoint* m_snakeContour;
-        int m_snakeContourLength;
+		CvPoint* m_snakeContourLeft;
+        int m_snakeContourLeftLength;
         
-        void initSnakeContour(int x0, int y0, int r, int num);
-        void reInitSnakeContour(int thres);
+        CvPoint* m_snakeContourRight;
+        int m_snakeContourRightLength;
+        
+        void initSnakeContour(int x0, int y0, int r, int num, int p_eye);
+        void reInitSnakeContour(int thres, int p_eye);
 		
 		// hough parameters
 		int m_houghAccRes;
@@ -169,7 +191,7 @@ class PupilMeasure
         static bool pointSortPredicate(const cv::Point2f &left, const cv::Point2f &right);
 
         // process eyes
-        //cv::Mat processEye(cv::Mat eye);
+        cv::Mat processEye(cv::Mat eye, int p_eye);
 
 };
 
