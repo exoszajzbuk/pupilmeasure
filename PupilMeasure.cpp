@@ -79,8 +79,10 @@ bool PupilMeasure::startWebcam(string device, int width, int height, string outF
     }
     
     // initialize snake contour
-    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, 0);
-    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, 1);
+    m_snakeContourLeftLength = 15;
+    m_snakeContourRightLength = 15;
+    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, m_snakeContourLeftLength, 0);
+    initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, m_snakeContourRightLength, 1);
     
     // ================
     // LOGGING
@@ -100,6 +102,7 @@ bool PupilMeasure::startWebcam(string device, int width, int height, string outF
 	// insert log header
 	std::string method = m_method==0?"SNAKE":"HOUGH";
     logfile << method <<" measurement -- started at " << buffer << "\n";
+    logfile << "framenum;time;current_fps;eyewidth;eyeheight;left_x;left_y;right_x;right_y\n";
     
     // close log file
     logfile.close();
@@ -221,7 +224,71 @@ bool PupilMeasure::processNextFrame()
 	ofstream logfile(m_outFile.c_str(), ios::app);
 
 	// log time, frame number and results
-    logfile << m_frameNum++ << ";" << time << ";results\n";
+    logfile << m_frameNum++ << ";" << time << ";" << getCurrentFPS() << ";" << m_eyeWidth << ";" << m_eyeHeight << ";";
+    if (m_method == 0)
+    {
+        // calculate snake middle point
+		int left_x, left_y;
+		int right_x, right_y;
+		
+		if (m_method == 0)
+		{
+			// left
+			for (int i=0;i<m_snakeContourLeftLength;i++)
+			{
+				left_x += m_snakeContourLeft[i].x;
+				left_y += m_snakeContourLeft[i].y;
+			}
+			
+			left_x = (int)(left_x / m_snakeContourLeftLength);
+			left_y = (int)(left_y / m_snakeContourLeftLength);
+			
+			// right    	
+			for (int i=0;i<m_snakeContourRightLength;i++)
+			{
+				right_x += m_snakeContourRight[i].x;
+				right_y += m_snakeContourRight[i].y;
+			}
+			
+			right_x = (int)(right_x / m_snakeContourRightLength);
+			right_y = (int)(right_y / m_snakeContourRightLength);
+		}
+    
+    	// log avg of coordinates
+    	logfile << left_x << ";" << left_y << ";" << right_x << ";" << right_y << "\n";
+    }
+    else if (m_method == 1)
+    {
+    	// log circle centers
+    	int left_x, left_y;
+    	int right_x, right_y;
+    	
+    	// left
+    	if(m_circlesLeft.size() > 0)
+    	{
+    		left_x = m_circlesLeft[0][0];
+    		left_y = m_circlesLeft[0][1];
+    	}
+    	else
+    	{
+    		left_x = -1;
+    		left_y = -1;
+    	}
+    	
+    	// right
+    	if(m_circlesRight.size() > 0)
+    	{
+    		right_x = m_circlesRight[0][0];
+    		right_y = m_circlesRight[0][1];
+    	}
+    	else
+    	{
+    		right_x = -1;
+    		right_y = -1;
+    	}
+    	
+    	logfile << left_x << ";" << left_y << ";" << right_x << ";" << right_y << "\n";
+    }
     
     // HOUGH/SNAKE specific logging
     
@@ -249,19 +316,23 @@ cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
     
 	CvPoint* snakeContour;
 	int snakeContourLength;
-    
+    vector<Vec3f> circles;
+        
     // result vectors
     if (p_eye == 0)
     {
     	snakeContour = m_snakeContourLeft;
 		snakeContourLength = m_snakeContourLeftLength;
+		
+		circles = m_circlesLeft;
     }
     else if (p_eye == 1)
     {
 		snakeContour = m_snakeContourRight;
 		snakeContourLength = m_snakeContourRightLength;
+		
+		circles = m_circlesRight;
     }
-    vector<Vec3f> circles;
 
     cvtColor(p_img, grey, CV_RGB2GRAY);
 
@@ -347,18 +418,7 @@ cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
 			termCrit,							// termination crit.
 			0									// calc. gradient
 		);
-	
-		// write back results
-		if (p_eye == 0)
-		{
-    		m_snakeContourLeft = snakeContour;
-			m_snakeContourLeftLength = snakeContourLength;
-		}
-		else if (p_eye == 1)
-		{
-    		m_snakeContourRight = snakeContour;
-			m_snakeContourRightLength = snakeContourLength;		
-		}
+
 		
 		// draw results
 		for (size_t i = 0; i < snakeContourLength; i++)
@@ -400,6 +460,19 @@ cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
 			8,
 			0
 		);
+	
+	
+		// write back results
+		if (p_eye == 0)
+		{
+    		m_snakeContourLeft = snakeContour;
+			m_snakeContourLeftLength = snakeContourLength;
+		}
+		else if (p_eye == 1)
+		{
+    		m_snakeContourRight = snakeContour;
+			m_snakeContourRightLength = snakeContourLength;		
+		}
 	}
 	else
 	{
@@ -413,8 +486,8 @@ cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
 			m_houghMinDist,			// minimum distance between circles
 			m_houghCanny,			// param1 (Canny-parameter)
 			m_houghHough,			// param2, default=100
-			0,						// minimum radius, default=0
-            0						// maximum radius, default=0
+			20,						// minimum radius, default=0
+            150						// maximum radius, default=0
 		);
 		
 		// draw detected circles
@@ -431,6 +504,16 @@ cv::Mat PupilMeasure::processEye(cv::Mat p_img, int p_eye)
 
 			// draw the circle outline
 			circle(out, center, radius, Scalar(255,0,0), 1, 8, 0);
+		}
+		
+		// write back results
+		if (p_eye == 0)
+		{
+			m_circlesLeft = circles;
+		}
+		else if (p_eye == 1)
+		{
+			m_circlesRight = circles;
 		}
 	}
 	
@@ -568,8 +651,6 @@ void PupilMeasure::reInitSnakeContour(int thres, int p_eye)
 		snakeContourLength = m_snakeContourRightLength;	
 	}
 
-	std::cout << "reinit\n";
-
     // temporary variables
     int x_min = m_eyeWidth;
     int x_max = 0;
@@ -614,10 +695,8 @@ void PupilMeasure::reInitSnakeContour(int thres, int p_eye)
 
     if ((x_max - x_min) < thres && (y_max - y_min) < thres)
     {
-    	std::cout << "KELL\n";
         // reinit contour
-        initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, 15, p_eye);
-        std::cout << "kesz\n";
+        initSnakeContour(m_eyeWidth/2, m_eyeHeight/2, m_eyeWidth<m_eyeHeight?m_eyeWidth/2:m_eyeHeight/2, snakeContourLength, p_eye);
     }
 
 }

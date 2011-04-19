@@ -167,6 +167,9 @@ class PupilMeasure
         CvPoint* m_snakeContourRight;
         int m_snakeContourRightLength;
         
+        std::vector<cv::Vec3f> m_circlesLeft;
+        std::vector<cv::Vec3f> m_circlesRight;
+        
         void initSnakeContour(int x0, int y0, int r, int num, int p_eye);
         void reInitSnakeContour(int thres, int p_eye);
 		
